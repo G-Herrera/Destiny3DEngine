@@ -1,41 +1,183 @@
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
-
 #include <Engine/Engine.h>
 
 #include <string>
 
-int WINAPI wWinMain(
-  HINSTANCE,
-  HINSTANCE,
-  PWSTR,
-  int
-)
+// Nombre de la clase de ventana
+constexpr wchar_t WINDOW_CLASS_NAME[] = L"Destiny 3D Engine";
+
+LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
-  const int testResult = Engine_RunSmokeTest();
+	switch (message)
+	{
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_ERASEBKGND:
+		// Evita que Windows borre el fondo de la ventana, lo que puede causar parpadeo.
+		return 1;
+	default:
+		return DefWindowProc(window, message, wParam, lParam);
+	}
+}
 
-  std::wstring message = L"Engine cargado: ";
-  message += Engine_GetName();
+int WINAPI wWinMain(HINSTANCE instance,HINSTANCE previousInstance,PWSTR commandLine,int showCommand)
+{
+  UNREFERENCED_PARAMETER(previousInstance);
+  UNREFERENCED_PARAMETER(commandLine);
 
-  if (testResult != 0)
-  {
-    message += L"\n\nDirectX 11: OK";
-    message += L"\nDirectXTK: OK";
-    message += L"\nEngine.dll: OK";
-    message += L"\nEngine.lib: OK";
-  }
-  else
-  {
-    message += L"\n\nError durante la validacion.";
-  }
 
-  MessageBoxW(
+  constexpr UINT CLIENT_WIDTH = 1280;
+  constexpr UINT CLIENT_HEIGHT = 720;
+
+  WNDCLASSEXW windowClass{};
+  windowClass.cbSize = sizeof(WNDCLASSEXW);
+  windowClass.style = CS_HREDRAW | CS_VREDRAW;
+  windowClass.lpfnWndProc = WindowProcedure;
+  windowClass.hInstance = instance;
+  windowClass.hCursor = LoadCursorW(
     nullptr,
-    message.c_str(),
-    L"Sandbox - Smoke Test",
-    testResult != 0
-    ? MB_OK | MB_ICONINFORMATION
-    : MB_OK | MB_ICONERROR
+    IDC_ARROW
+  );
+  windowClass.lpszClassName = WINDOW_CLASS_NAME;
+
+  if (!RegisterClassExW(&windowClass))
+  {
+    MessageBoxW(
+      nullptr,
+      L"No se pudo registrar la clase de ventana.",
+      L"Sandbox Error",
+      MB_OK | MB_ICONERROR
+    );
+
+    return 1;
+  }
+
+  // Ventana fija mientras no implementemos ResizeBuffers.
+  constexpr unsigned int windowStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+
+  RECT windowRectangle
+  {
+      0,
+      0,
+      static_cast<float>(CLIENT_WIDTH),
+      static_cast<float>(CLIENT_HEIGHT)
+  };
+
+  if (!AdjustWindowRect(&windowRectangle, windowStyle, FALSE))
+  {
+    UnregisterClassW(WINDOW_CLASS_NAME, instance);
+
+    return 1;
+  }
+
+  const int windowWidth = windowRectangle.right - windowRectangle.left;
+
+  const int windowHeight = windowRectangle.bottom - windowRectangle.top;
+
+  HWND window = CreateWindowExW(
+    0,
+    WINDOW_CLASS_NAME,
+    L"Destiny 3D Engine",
+    windowStyle,
+    CW_USEDEFAULT,
+    CW_USEDEFAULT,
+    windowWidth,
+    windowHeight,
+    nullptr,
+    nullptr,
+    instance,
+    nullptr
   );
 
-  return testResult != 0 ? 0 : 1;
+  if (!window)
+  {
+    MessageBoxW(
+      nullptr,
+      L"No se pudo crear la ventana.",
+      L"Sandbox Error",
+      MB_OK | MB_ICONERROR
+    );
+
+    UnregisterClassW(
+      WINDOW_CLASS_NAME,
+      instance
+    );
+
+    return 1;
+  }
+
+  Engine engine;
+  if (!engine.Initialize(window, CLIENT_WIDTH, CLIENT_HEIGHT))
+  {
+    MessageBoxW(
+      window,
+      L"No se pudo inicializar el Engine.\n\n"
+      L"Verifica que exista:\n"
+      L"shaders\\Triangle.hlsl\n\n"
+      L"Revisa también la ventana Output.",
+      L"Engine Error",
+      MB_OK | MB_ICONERROR
+    );
+
+    DestroyWindow(window);
+
+    UnregisterClassW(
+      WINDOW_CLASS_NAME,
+      instance
+    );
+
+    return 1;
+  }
+
+  ShowWindow(window, showCommand);
+  UpdateWindow(window);
+
+  MSG message{};
+  bool running = true;
+
+  while (running)
+  {
+    while (PeekMessageW(
+      &message,
+      nullptr,
+      0,
+      0,
+      PM_REMOVE))
+    {
+      if (message.message == WM_QUIT)
+      {
+        running = false;
+        break;
+      }
+
+      TranslateMessage(&message);
+      DispatchMessageW(&message);
+    }
+
+    if (!running)
+      break;
+
+    if (IsIconic(window))
+    {
+      WaitMessage();
+      continue;
+    }
+
+    engine.Render();
+  }
+
+  engine.Shutdown();
+
+  UnregisterClassW(
+    WINDOW_CLASS_NAME,
+    instance
+  );
+
+  return 0;
 }
