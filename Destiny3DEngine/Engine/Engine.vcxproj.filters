@@ -16,6 +16,12 @@
     <Filter Include="Header Files\Engine">
       <UniqueIdentifier>{75367bab-2cc4-4baa-9b4f-328a693c4513}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core">
+      <UniqueIdentifier>{a53066e5-de7a-4981-b952-e7c0e4091096}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{ccc00408-17c0-49d7-b83b-ae3e8ce388bf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Engine\API.h">
