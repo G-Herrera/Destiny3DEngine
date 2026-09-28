@@ -30,16 +30,30 @@ public:
 	Engine(Engine&&) = delete;
 	Engine& operator=(Engine&&) = delete;
 
-	bool Initialize(
-		void* nativeWindow, 
-		std::uint32_t width, 
-		std::uint32_t height
-	) noexcept;
+	/**
+		* @brief Initializes the engine with the given native window handle and dimensions.
+		* 
+		* @param nativeWindow A pointer to the native window handle.
+		* @param width The width of the window.
+		* @param height The height of the window.
+		* @return true if the engine was successfully initialized, false otherwise.
+		*/
+	bool 
+	Initialize(void* nativeWindow,	std::uint32_t width, std::uint32_t height) noexcept;
 
-	void Render() noexcept;
-	void Shutdown() noexcept;
+	/**
+		* @brief Updates the engine state. This function should be called once per frame.
+		*/
+	void 
+	Render() noexcept;
+
+	/**
+		* @brief Renders the current frame. This function should be called once per frame after Update().
+		*/
+	void 
+	Shutdown() noexcept;
 
 private: 
-	struct Implementation;
-	Implementation* m_Implementation = nullptr;
+	struct Implementation; ///> Forward declaration of the implementation struct to hide implementation details.
+	Implementation* m_Implementation = nullptr; ///> Pointer to the implementation struct, used for the Pimpl idiom to hide implementation details.
 };
