@@ -73,7 +73,8 @@ Window::Show(int showCommand) noexcept
 	}
 }
 
-void Window::Destroy() noexcept
+void 
+Window::Destroy() noexcept
 {
 	if (m_windowHandle)
 	{
@@ -90,7 +91,8 @@ void Window::Destroy() noexcept
 	m_instance = nullptr;
 }
 
-bool Window::ProcessMessages() noexcept
+bool 
+Window::ProcessMessages() noexcept
 {
 	MSG message{};
 
@@ -106,16 +108,17 @@ bool Window::ProcessMessages() noexcept
 	return true;
 }
 
-bool Window::IsMinimized() const noexcept
+bool 
+Window::IsMinimized() const noexcept
 {
 	return m_windowHandle && IsIconic(m_windowHandle);
 }
 
 LRESULT CALLBACK Window::WindowProcedure(
-	HWND handle,
-	UINT message,
-	WPARAM wParam,
-	LPARAM lParam
+  HWND handle,
+  UINT message,
+  WPARAM wParam,
+  LPARAM lParam
 )
 {
 	switch (message)
