@@ -22,6 +22,12 @@
     <Filter Include="Source Files\Core">
       <UniqueIdentifier>{ccc00408-17c0-49d7-b83b-ae3e8ce388bf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Rendering">
+      <UniqueIdentifier>{ecfbac9b-ab16-47b3-8fc7-4ab1eb6cacb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Rendering">
+      <UniqueIdentifier>{b779501d-8440-48de-b513-c12fd1296bb5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Engine\API.h">
@@ -33,10 +39,16 @@
     <ClInclude Include="include\Engine\Prerequisites.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="include\Rendering\Device.h">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Rendering\Device.cpp">
+      <Filter>Source Files\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
