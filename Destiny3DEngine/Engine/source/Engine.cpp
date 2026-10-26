@@ -1,6 +1,7 @@
 #include <Engine/Engine.h>
 #include <Engine/Prerequisites.h>
 #include <Rendering/Device.h>
+#include <Rendering/DeviceContext.h>
 
 
 struct 
@@ -16,14 +17,15 @@ Engine::Implementation {
     DirectX::XMFLOAT4X4 worldViewProjection;
   };
   
-  //HWND windowHandle = nullptr;
+  HWND windowHandle = nullptr;
   
   std::uint32_t width = 0;
   std::uint32_t height = 0;
   
   Device device;
+  DeviceContext deviceContext;
   //ID3D11Device* device = nullptr;
-  ID3D11DeviceContext* deviceContext = nullptr;
+  //ID3D11DeviceContext* deviceContext = nullptr;
   IDXGISwapChain* swapChain = nullptr;
   ID3D11RenderTargetView* renderTargetView = nullptr;
   
@@ -96,10 +98,11 @@ Engine::Implementation {
   
   void 
   ReleaseResources() noexcept {
-    if (deviceContext) {
-      deviceContext->ClearState();
-      deviceContext->Flush();
-    }
+    //if (deviceContext) {
+    //  deviceContext->ClearState();
+    //  deviceContext->Flush();
+    //}
+
     
     SafeRelease(rasterizerState);
     SafeRelease(transformBuffer);
@@ -115,11 +118,12 @@ Engine::Implementation {
     SafeRelease(renderTargetView);
     
     SafeRelease(swapChain);
-    SafeRelease(deviceContext);
+    //SafeRelease(deviceContext);
     //SafeRelease(device);
+    deviceContext.destroy();
 		device.destroy();
     
-    //windowHandle = nullptr;
+    windowHandle = nullptr;
     width = 0;
     height = 0;
     
@@ -144,7 +148,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   //Permite reinicializar la instancia de forma segura.
   engine.ReleaseResources();
   
-  //engine.windowHandle = static_cast<HWND>(nativeWindow);
+  engine.windowHandle = static_cast<HWND>(nativeWindow);
   engine.width = width;
   engine.height = height;
   
@@ -165,7 +169,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
   
-  //swapChainDescription.OutputWindow = engine.windowHandle;
+  swapChainDescription.OutputWindow = engine.windowHandle;
   
   swapChainDescription.SampleDesc.Count = 1;
   swapChainDescription.SampleDesc.Quality = 0; // Antialising
@@ -189,13 +193,14 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
                                                  &engine.swapChain,
                                                  engine.device.getDeviceAdress(),
                                                  &selectedFeatureLevel,
-                                                 &engine.deviceContext);
+                                                 engine.deviceContext.getDeviceContextAdress());
   
   
   //Si falla la GPU física, utiliza el rasterizador por software de Windows. (WARP)
   if (FAILED(result)) {
     SafeRelease(engine.swapChain);
-    SafeRelease(engine.deviceContext);
+    engine.deviceContext.destroy();
+    //SafeRelease(engine.deviceContext);
     //SafeRelease(engine.device);
 		engine.device.destroy();
     
@@ -210,7 +215,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
                                            &engine.swapChain,
                                            engine.device.getDeviceAdress(),
                                            &selectedFeatureLevel,
-                                           &engine.deviceContext);
+                                           engine.deviceContext.getDeviceContextAdress());
   }
   
   if (FAILED(result)) {
@@ -286,7 +291,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   viewport.MinDepth = 0.0f;
   viewport.MaxDepth = 1.0f;
   
-  engine.deviceContext->RSSetViewports(1, &viewport);
+  engine.deviceContext.RSSetViewports(1, &viewport);
   
   ID3DBlob* vertexShaderBlob = nullptr;
   ID3DBlob* pixelShaderBlob = nullptr;
@@ -547,7 +552,7 @@ Engine::Render() noexcept
   
   Implementation& engine = *m_Implementation;
   
-  if (!engine.deviceContext ||
+  if (!engine.deviceContext.getDeviceContext() ||
       !engine.swapChain ||
       !engine.renderTargetView ||
       !engine.depthStencilView ||
@@ -569,13 +574,13 @@ Engine::Render() noexcept
     1.0f
   };
   
-  engine.deviceContext->OMSetRenderTargets(1, 
+  engine.deviceContext.OMSetRenderTargets(1, 
                                            &engine.renderTargetView, 
                                            engine.depthStencilView);
   
-  engine.deviceContext->ClearRenderTargetView(engine.renderTargetView, clearColor);
+  engine.deviceContext.ClearRenderTargetView(engine.renderTargetView, clearColor);
   
-  engine.deviceContext->ClearDepthStencilView(engine.depthStencilView,
+  engine.deviceContext.ClearDepthStencilView(engine.depthStencilView,
                                               D3D11_CLEAR_DEPTH |
                                               D3D11_CLEAR_STENCIL,
                                               1.0f,
@@ -612,7 +617,7 @@ Engine::Render() noexcept
   XMStoreFloat4x4(&transform.worldViewProjection, 
                   XMMatrixTranspose(world * view * projection));
   
-  engine.deviceContext->UpdateSubresource(engine.transformBuffer, 
+  engine.deviceContext.UpdateSubresource(engine.transformBuffer, 
                                           0, 
                                           nullptr, 
                                           &transform, 
@@ -623,23 +628,23 @@ Engine::Render() noexcept
   
   constexpr UINT offset = 0;
   
-  engine.deviceContext->IASetVertexBuffers(0, 1, &engine.vertexBuffer, &stride, &offset);
+  engine.deviceContext.IASetVertexBuffers(0, 1, &engine.vertexBuffer, &stride, &offset);
   
-  engine.deviceContext->IASetIndexBuffer(engine.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+  engine.deviceContext.IASetIndexBuffer(engine.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
   
-  engine.deviceContext->IASetInputLayout(engine.inputLayout);
+  engine.deviceContext.IASetInputLayout(engine.inputLayout);
   
-  engine.deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  engine.deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   
-  engine.deviceContext->RSSetState(engine.rasterizerState);
+  engine.deviceContext.RSSetState(engine.rasterizerState);
   
-  engine.deviceContext->VSSetShader(engine.vertexShader, nullptr, 0);
+  engine.deviceContext.VSSetShader(engine.vertexShader, nullptr, 0);
   
-  engine.deviceContext->VSSetConstantBuffers(0, 1, &engine.transformBuffer);
+  engine.deviceContext.VSSetConstantBuffers(0, 1, &engine.transformBuffer);
   
-  engine.deviceContext->PSSetShader(engine.pixelShader, nullptr, 0);
+  engine.deviceContext.PSSetShader(engine.pixelShader, nullptr, 0);
   
-  engine.deviceContext->DrawIndexed(36, 0, 0);
+  engine.deviceContext.DrawIndexed(36, 0, 0);
   
   engine.swapChain->Present(1, 0);
 }
