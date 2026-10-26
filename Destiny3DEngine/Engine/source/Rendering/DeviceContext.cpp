@@ -62,14 +62,25 @@ DeviceContext::OMSetRenderTargets(unsigned int numViews,
 
 void 
 DeviceContext::RSSetViewports(unsigned int NumViewports,
-                              const D3D11_VIEWPORT* pViewports) noexcept
-{
+                              const D3D11_VIEWPORT* pViewports) noexcept {
 	if(!pViewports || NumViewports == 0) {
 		ERROR("DeviceContext", "RSSetViewports", "Viewport pointer is null or number of viewports is zero.");
 		return;
 	}
 
 	requireContext().RSSetViewports(NumViewports, pViewports);
+}
+
+void 
+DeviceContext::PSSetShaderResources(unsigned int StartSlot, 
+                                    unsigned int NumViews, 
+                                    ID3D11ShaderResourceView* const* ppShaderResourceViews) {
+  if (!ppShaderResourceViews || NumViews == 0) {
+    ERROR("DeviceContext", "PSSetShaderResources", "Invalid shader resource view parameters.");
+    return;
+  }
+
+  requireContext().PSSetShaderResources(StartSlot, NumViews, ppShaderResourceViews);
 }
 
 void

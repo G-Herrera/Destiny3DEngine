@@ -2,34 +2,37 @@
 #include <Engine/Prerequisites.h>
 #include <Rendering/Device.h>
 #include <Rendering/DeviceContext.h>
+#include <Rendering/Texture2D.h>
 
 
-struct 
-Engine::Implementation {
-  struct 
-  Vertex {
+struct
+  Engine::Implementation {
+  struct
+    Vertex {
     float position[3];
     float color[4];
   };
-  
+
   struct alignas(16) TransformBuffer
   {
     DirectX::XMFLOAT4X4 worldViewProjection;
   };
-  
+
   HWND windowHandle = nullptr;
-  
+
   std::uint32_t width = 0;
   std::uint32_t height = 0;
-  
+
   Device device;
   DeviceContext deviceContext;
   //ID3D11Device* device = nullptr;
   //ID3D11DeviceContext* deviceContext = nullptr;
   IDXGISwapChain* swapChain = nullptr;
   ID3D11RenderTargetView* renderTargetView = nullptr;
-  
-  ID3D11Texture2D* depthStencilBuffer = nullptr;
+
+  //ID3D11Texture2D* depthStencilBuffer = nullptr;
+  Texture2D backBuffer;
+  Texture2D depthStencilBuffer;
   ID3D11DepthStencilView* depthStencilView = nullptr;
   
   ID3D11Buffer* vertexBuffer = nullptr;
@@ -114,10 +117,12 @@ Engine::Implementation {
     SafeRelease(vertexShader);
     
     SafeRelease(depthStencilView);
-    SafeRelease(depthStencilBuffer);
+    depthStencilBuffer.destroy();
+    //SafeRelease(depthStencilBuffer);
     SafeRelease(renderTargetView);
     
     SafeRelease(swapChain);
+    backBuffer.destroy();
     //SafeRelease(deviceContext);
     //SafeRelease(device);
     deviceContext.destroy();
@@ -223,19 +228,18 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
     return false;
   }
   
-  ID3D11Texture2D* backBuffer = nullptr;
+  //ID3D11Texture2D* backBuffer = nullptr;
   result = engine.swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), 
-                                       reinterpret_cast<void**>(&backBuffer));
+                                       reinterpret_cast<void**>(engine.backBuffer.GetTextureAdress()));
   
   if (FAILED(result)) {
     engine.ReleaseResources();
     return false;
   }
   
-  result = engine.device.CreateRenderTargetView(backBuffer, 
+  result = engine.device.CreateRenderTargetView(engine.backBuffer.GetTexture(),
                                                 nullptr, 
                                                 &engine.renderTargetView);
-  SafeRelease(backBuffer);
   
   if (FAILED(result)) {
     engine.ReleaseResources();
@@ -243,7 +247,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   }
   
   //Descriptor del buffer, utilizado para crear el depth stencil buffer y su vista.
-  D3D11_TEXTURE2D_DESC depthBufferDescription{};
+  /*  D3D11_TEXTURE2D_DESC depthBufferDescription{};
   
   depthBufferDescription.Width = engine.width;
   depthBufferDescription.Height = engine.height;
@@ -255,12 +259,19 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   depthBufferDescription.SampleDesc.Quality = 0;
   depthBufferDescription.Usage = D3D11_USAGE_DEFAULT;
   
-  depthBufferDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+  depthBufferDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL*/;
   
-  result = engine.device.CreateTexture2D(&depthBufferDescription, 
+ /* result = engine.device.CreateTexture2D(&depthBufferDescription, 
                                          nullptr, 
-                                         &engine.depthStencilBuffer);
-  
+                                         &engine.depthStencilBuffer);*/
+
+
+  result = engine.depthStencilBuffer.init(engine.device, 
+                                          engine.width, 
+                                          engine.height, 
+                                          DXGI_FORMAT_D24_UNORM_S8_UINT, 
+                                          D3D11_BIND_DEPTH_STENCIL);
+
   if (FAILED(result))
   {
     engine.ReleaseResources();
@@ -269,7 +280,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   //Crea la vista del depth stencil buffer, que se utiliza para el test de profundidad y stencil. 
   //Actualiza la profundidad de los píxeles y determina si se deben renderizar o descartar.
-  result = engine.device.CreateDepthStencilView(engine.depthStencilBuffer, 
+  result = engine.device.CreateDepthStencilView(engine.depthStencilBuffer.GetTexture(),
                                                 nullptr, 
                                                 &engine.depthStencilView);
   

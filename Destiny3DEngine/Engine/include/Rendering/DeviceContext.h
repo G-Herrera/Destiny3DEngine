@@ -45,6 +45,18 @@ public:
                  const D3D11_VIEWPORT* pViewports) noexcept;
 
   /**
+   * @brief Sets the shader resources for the pixel-shader stage.
+   * 
+   * @param StartSlot The first slot to set.
+   * @param NumViews The number of shader resource views to set.
+   * @param ppShaderResourceView A pointer to an array of shader resource view pointers.
+   */
+  void 
+  PSSetShaderResources(unsigned int StartSlot, 
+                       unsigned int NumViews, 
+                       ID3D11ShaderResourceView* const* ppShaderResourceViews);
+
+  /**
    * @brief Sets the render targets for the output-merger stage.
    * 
    * @param NumViews The number of render target views to set.

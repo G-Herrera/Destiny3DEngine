@@ -43,7 +43,7 @@ public:
   void 
   render(DeviceContext& deviceContext, unsigned int StartSlot, unsigned int NumViews);
 
-  int 
+  void 
   destroy() noexcept;
 
   HRESULT 
@@ -59,10 +59,20 @@ public:
                        unsigned int faceIndex,
                        unsigned int mipLevels = 1);
 
+  ID3D11Texture2D* 
+  GetTexture() const noexcept {
+    return m_texture;
+  }
+
+  ID3D11Texture2D** 
+  GetTextureAdress() noexcept {
+    return &m_texture;
+  }
+
 public:
   ID3D11Texture2D* m_texture = nullptr;
 
-  ID3D11ShaderResourceView* m_textureFomImg = nullptr;
+  ID3D11ShaderResourceView* m_textureFromImg = nullptr;
 
   std::string m_textureName;
   

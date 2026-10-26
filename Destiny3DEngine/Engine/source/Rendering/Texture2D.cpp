@@ -4,10 +4,14 @@
 #include "Rendering/Device.h"
 #include "Rendering/DeviceContext.h"
 
+Texture2D::~Texture2D() noexcept {
+  destroy();
+}
+
 HRESULT 
 Texture2D::init(Device& device, 
                 const std::string& textureName, 
-                ExtensionType extensionType) {
+                ExtensionType extensionType) noexcept{
   if (!device.getDevice()) {
     ERROR("Texture", "init", "Device is null.");
     return E_POINTER;
@@ -37,6 +41,13 @@ Texture2D::init(Device& device,
   }
 
   return hr;
+}
+
+HRESULT 
+Texture2D::InitTextureFromImage(Device& device, 
+                                const std::string& fullPath,
+                                Texture2D& texture) {
+  return E_NOTIMPL;
 }
 
 HRESULT 
@@ -81,3 +92,43 @@ Texture2D::init(Device& device,
   }
   return S_OK;
 }
+
+HRESULT 
+Texture2D::init(Device& device, Texture2D& textureRef, DXGI_FORMAT format) {
+  return E_NOTIMPL;
+}
+
+void 
+Texture2D::render(DeviceContext& deviceContext, 
+                  unsigned int StartSlot,
+                  unsigned int NumViews){
+  if (!deviceContext.getDeviceContext()) {
+    ERROR("Texture", "init", "Device Context is null.");
+    return;
+  }
+
+  if (m_textureFromImg) {
+    deviceContext.PSSetShaderResources(StartSlot, NumViews, &m_textureFromImg);
+  }
+}
+
+void
+Texture2D::destroy() noexcept{
+  if (m_texture != nullptr) {
+    SAFE_RELEASE(m_texture);
+  }
+  if (m_textureFromImg != nullptr) {
+    SAFE_RELEASE(m_textureFromImg);
+  }
+}
+
+HRESULT 
+Texture2D::CreateCubemap(Device& device, 
+                         DeviceContext& deviceContext,
+                         const std::array<std::string, 6>& facePaths, 
+                         bool generateMips)
+{
+  return E_NOTIMPL;
+}
+
+
