@@ -30,6 +30,16 @@
         OutputDebugStringW(L"Failed to log error message.\n");\
     }                                                         \
 }
+// SafeRelease function template to safely release COM objects
+template<typename T>
+void SafeRelease(T * &object) noexcept
+{
+  if (object != nullptr)
+  {
+    object->Release();
+    object = nullptr;
+  }
+}
 
 extern "C" {
 	ENGINE_API bool

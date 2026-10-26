@@ -1,6 +1,20 @@
 #include "Rendering/Device.h"
 
-HRESULT 
+
+Device::~Device()
+{
+  destroy();
+}
+
+void 
+Device::destroy()
+{
+  if (m_device) {
+    SafeRelease(m_device);
+  }
+}
+
+HRESULT
 Device::CreateRenderTargetView(ID3D11Resource* pResource, 
                                const D3D11_RENDER_TARGET_VIEW_DESC* pDesc, 
                                ID3D11RenderTargetView** ppRTView) {
@@ -100,7 +114,7 @@ Device::CreateDepthStencilView(ID3D11Resource* pResource,
 
 HRESULT
 Device::CreateVertexShader(const void* pShaderBytecode,
-                           SIZE_T BytecodeLength,
+                           unsigned int BytecodeLength,
                            ID3D11ClassLinkage* pClassLinkage,
                            ID3D11VertexShader** ppVertexShader)
 {

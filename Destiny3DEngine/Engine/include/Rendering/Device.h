@@ -13,8 +13,22 @@ public:
 	void 
   destroy();
 
+  /**
+   * @brief Gets the underlying ID3D11Device.
+   * @return ID3D11Device* The underlying Direct3D device.
+   */
   ID3D11Device* 
-  getDevice() { return m_device; }
+  getDevice() const noexcept
+  { return m_device; }
+
+  /**
+   * @brief Gets the address of the underlying ID3D11Device.
+   * @return ID3D11Device** The address of the underlying Direct3D device.
+	 */
+  ID3D11Device**
+  getDeviceAdress() noexcept
+  { return &m_device; }
+
 
   /**
 	 * @brief Creates a render target view for the specified resource.
@@ -55,17 +69,18 @@ public:
                          const D3D11_DEPTH_STENCIL_VIEW_DESC* pDesc,
                          ID3D11DepthStencilView** ppDepthStencilView);
   
-  /**
-   * @brief Creates a buffer resource.
-   * 
-   * @param pDesc A pointer to a D3D11_BUFFER_DESC structure that describes the buffer.
-   * @param pInitialData A pointer to a D3D11_SUBRESOURCE_DATA structure that describes the initial data for the buffer.
-   * @param ppBuffer A pointer to a variable that receives the created buffer.
-   * @return HRESULT Indicates success or failure.
-	 */
+ /**
+	* @brief Creates a vertex shader object.
+  * 
+  * @param pShaderBytecode A pointer to the compiled shader bytecode.
+  * @param BytecodeLength The size of the compiled shader bytecode in bytes.
+  * @param pClassLinkage A pointer to an ID3D11ClassLinkage interface for class linkage (can be nullptr).
+  * @param ppVertexShader A pointer to a variable that receives the created vertex shader object.
+  * @return HRESULT Indicates success or failure.
+  */
   HRESULT
   CreateVertexShader(const void* pShaderBytecode, 
-                     SIZE_T BytecodeLength, 
+                     unsigned int BytecodeLength, 
                      ID3D11ClassLinkage* pClassLinkage,
                      ID3D11VertexShader** ppVertexShader);
 

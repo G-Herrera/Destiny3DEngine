@@ -1,15 +1,8 @@
 #include <Engine/Engine.h>
 #include <Engine/Prerequisites.h>
+#include <Rendering/Device.h>
 
-template<typename T>
-void SafeRelease(T * &object) noexcept
-{
-  if (object != nullptr)
-  {
-    object->Release();
-    object = nullptr;
-  }
-}
+
 struct 
 Engine::Implementation {
   struct 
@@ -28,7 +21,8 @@ Engine::Implementation {
   std::uint32_t width = 0;
   std::uint32_t height = 0;
   
-  ID3D11Device* device = nullptr;
+  Device device;
+  //ID3D11Device* device = nullptr;
   ID3D11DeviceContext* deviceContext = nullptr;
   IDXGISwapChain* swapChain = nullptr;
   ID3D11RenderTargetView* renderTargetView = nullptr;
@@ -122,7 +116,8 @@ Engine::Implementation {
     
     SafeRelease(swapChain);
     SafeRelease(deviceContext);
-    SafeRelease(device);
+    //SafeRelease(device);
+		device.destroy();
     
     //windowHandle = nullptr;
     width = 0;
@@ -149,7 +144,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   //Permite reinicializar la instancia de forma segura.
   engine.ReleaseResources();
   
-  engine.windowHandle = static_cast<HWND>(nativeWindow);
+  //engine.windowHandle = static_cast<HWND>(nativeWindow);
   engine.width = width;
   engine.height = height;
   
@@ -170,7 +165,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
   
-  swapChainDescription.OutputWindow = engine.windowHandle;
+  //swapChainDescription.OutputWindow = engine.windowHandle;
   
   swapChainDescription.SampleDesc.Count = 1;
   swapChainDescription.SampleDesc.Quality = 0; // Antialising
@@ -192,7 +187,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
                                                  D3D11_SDK_VERSION,
                                                  &swapChainDescription,
                                                  &engine.swapChain,
-                                                 &engine.device,
+                                                 engine.device.getDeviceAdress(),
                                                  &selectedFeatureLevel,
                                                  &engine.deviceContext);
   
@@ -201,8 +196,8 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   if (FAILED(result)) {
     SafeRelease(engine.swapChain);
     SafeRelease(engine.deviceContext);
-    SafeRelease(engine.device);
-    
+    //SafeRelease(engine.device);
+		engine.device.destroy();
     
     result = D3D11CreateDeviceAndSwapChain(nullptr,
                                            D3D_DRIVER_TYPE_WARP,
@@ -213,7 +208,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
                                            D3D11_SDK_VERSION,
                                            &swapChainDescription,
                                            &engine.swapChain,
-                                           &engine.device,
+                                           engine.device.getDeviceAdress(),
                                            &selectedFeatureLevel,
                                            &engine.deviceContext);
   }
@@ -232,9 +227,9 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
     return false;
   }
   
-  result = engine.device->CreateRenderTargetView(backBuffer, 
-                                                 nullptr, 
-                                                 &engine.renderTargetView);
+  result = engine.device.CreateRenderTargetView(backBuffer, 
+                                                nullptr, 
+                                                &engine.renderTargetView);
   SafeRelease(backBuffer);
   
   if (FAILED(result)) {
@@ -257,9 +252,9 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   depthBufferDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
   
-  result = engine.device->CreateTexture2D(&depthBufferDescription, 
-                                          nullptr, 
-                                          &engine.depthStencilBuffer);
+  result = engine.device.CreateTexture2D(&depthBufferDescription, 
+                                         nullptr, 
+                                         &engine.depthStencilBuffer);
   
   if (FAILED(result))
   {
@@ -269,9 +264,9 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   //Crea la vista del depth stencil buffer, que se utiliza para el test de profundidad y stencil. 
   //Actualiza la profundidad de los píxeles y determina si se deben renderizar o descartar.
-  result = engine.device->CreateDepthStencilView(engine.depthStencilBuffer, 
-                                                 nullptr, 
-                                                 &engine.depthStencilView);
+  result = engine.device.CreateDepthStencilView(engine.depthStencilBuffer, 
+                                                nullptr, 
+                                                &engine.depthStencilView);
   
   if (FAILED(result))
   {
@@ -298,8 +293,14 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   if (!Implementation::CompileShader(L"shaders\\Cube.hlsl", 
                                      "VSMain", 
-                                     "vs_5_0", &vertexShaderBlob))
+                                     "vs_5_0", 
+                                     &vertexShaderBlob))
   {
+    //modificación temporal
+    OutputDebugStringA(
+      "ERROR: Fallo al compilar o cargar Cube.hlsl (vertex shader).\n"
+    );
+
     engine.ReleaseResources();
     return false;
   }
@@ -309,15 +310,20 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
                                      "ps_5_0", 
                                      &pixelShaderBlob))
   {
+    //modificación temporal
+    OutputDebugStringA(
+      "ERROR: Fallo al compilar o cargar Cube.hlsl (pixel shader).\n"
+    );
+
     SafeRelease(vertexShaderBlob);
     engine.ReleaseResources();
     return false;
   }
   
-  result = engine.device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(),
-                                             vertexShaderBlob->GetBufferSize(),
-                                             nullptr,
-                                             &engine.vertexShader);
+  result = engine.device.CreateVertexShader(vertexShaderBlob->GetBufferPointer(),
+                                            vertexShaderBlob->GetBufferSize(),
+                                            nullptr,
+                                            &engine.vertexShader);
   
   if (FAILED(result))
   {
@@ -327,10 +333,10 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
     return false;
   }
   
-  result = engine.device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(),
-                                            pixelShaderBlob->GetBufferSize(),
-                                            nullptr,
-                                            &engine.pixelShader);
+  result = engine.device.CreatePixelShader(pixelShaderBlob->GetBufferPointer(),
+                                           pixelShaderBlob->GetBufferSize(),
+                                           nullptr,
+                                           &engine.pixelShader);
   
   if (FAILED(result))
   {
@@ -361,11 +367,11 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
     }
   };
   
-  result = engine.device->CreateInputLayout(inputElements,
-                                            ARRAYSIZE(inputElements),
-                                            vertexShaderBlob->GetBufferPointer(),
-                                            vertexShaderBlob->GetBufferSize(),
-                                            &engine.inputLayout);
+  result = engine.device.CreateInputLayout(inputElements,
+                                           ARRAYSIZE(inputElements),
+                                           vertexShaderBlob->GetBufferPointer(),
+                                           vertexShaderBlob->GetBufferSize(),
+                                           &engine.inputLayout);
   
   SafeRelease(pixelShaderBlob);
   SafeRelease(vertexShaderBlob);
@@ -430,9 +436,9 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   D3D11_SUBRESOURCE_DATA initialVertexData{};
   initialVertexData.pSysMem = vertices;
   
-  result = engine.device->CreateBuffer(&vertexBufferDescription,
-                                       &initialVertexData,
-                                       &engine.vertexBuffer);
+  result = engine.device.CreateBuffer(&vertexBufferDescription,
+                                      &initialVertexData,
+                                      &engine.vertexBuffer);
   
   if (FAILED(result))
   {
@@ -478,9 +484,9 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   D3D11_SUBRESOURCE_DATA indexData{};
   indexData.pSysMem = indices;
   
-  result = engine.device->CreateBuffer(&indexBufferDescription, 
-                                       &indexData, 
-                                       &engine.indexBuffer);
+  result = engine.device.CreateBuffer(&indexBufferDescription, 
+                                      &indexData, 
+                                      &engine.indexBuffer);
   
   if (FAILED(result))
   {
@@ -496,9 +502,9 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   transformBufferDescription.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
   
-  result = engine.device->CreateBuffer(&transformBufferDescription, 
-                                       nullptr, 
-                                       &engine.transformBuffer);
+  result = engine.device.CreateBuffer(&transformBufferDescription, 
+                                      nullptr, 
+                                      &engine.transformBuffer);
   
   if (FAILED(result))
   {
@@ -514,8 +520,8 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   rasterizerDescription.DepthClipEnable = TRUE;
   
-  result = engine.device->CreateRasterizerState(&rasterizerDescription, 
-                                                &engine.rasterizerState);
+  result = engine.device.CreateRasterizerState(&rasterizerDescription, 
+                                               &engine.rasterizerState);
   
   if (FAILED(result))
   {
