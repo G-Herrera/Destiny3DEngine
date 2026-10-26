@@ -7,6 +7,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <cstddef>
+#include <sstream>
 #include <new>
 
 // MACROS
@@ -30,6 +31,14 @@
         OutputDebugStringW(L"Failed to log error message.\n");\
     }                                                         \
 }
+
+enum 
+ExtensionType {
+  DDS = 0,
+  PNG = 1,
+  JPG = 2,
+};
+
 // SafeRelease function template to safely release COM objects
 template<typename T>
 void SafeRelease(T * &object) noexcept

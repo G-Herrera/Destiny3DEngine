@@ -216,11 +216,13 @@
     <ClInclude Include="include\Rendering\Device.h" />
     <ClInclude Include="include\Rendering\DeviceContext.h" />
     <ClInclude Include="include\Rendering\SwapChain.h" />
+    <ClInclude Include="include\Rendering\Texture2D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine.cpp" />
     <ClCompile Include="source\Rendering\Device.cpp" />
     <ClCompile Include="source\Rendering\DeviceContext.cpp" />
+    <ClCompile Include="source\Rendering\Texture2D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\Shaders\Triangle.hlsl">

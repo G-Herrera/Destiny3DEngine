@@ -9,8 +9,8 @@ class Texture2D;
 /**
  * @brief A class that encapsulates a DirectX swap chain.
  */
-class SwapChain
-{
+class 
+SwapChain {
 public:
   SwapChain() = default;
   ~SwapChain();
