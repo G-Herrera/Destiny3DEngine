@@ -1,5 +1,6 @@
 #include <Engine/Engine.h>
 #include <Engine/Prerequisites.h>
+#include <Rendering/Buffer.h>
 #include <Rendering/Device.h>
 #include <Rendering/DeviceContext.h>
 #include <Rendering/Texture2D.h>

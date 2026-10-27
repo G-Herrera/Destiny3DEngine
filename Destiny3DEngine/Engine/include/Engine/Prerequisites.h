@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <sstream>
 #include <new>
+#include <vector>
 
 // MACROS
 #define SAFE_RELEASE(x) if(x != nullptr) x->Release(); x = nullptr;
@@ -63,3 +64,10 @@ extern "C" {
 	ENGINE_API void
 		Engine_Shutdown() noexcept;
 }
+
+struct 
+Vertex {
+  float x, y, z;    // Posición del vértice
+  float nx, ny, nz; // Normales
+  float u, v;       // Coordenadas de textura
+};
