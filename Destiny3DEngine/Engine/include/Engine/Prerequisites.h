@@ -67,7 +67,6 @@ extern "C" {
 
 struct 
 Vertex {
-  float x, y, z;    // Posición del vértice
-  float nx, ny, nz; // Normales
-  float u, v;       // Coordenadas de textura
+  float position[3];
+  float color[4];
 };

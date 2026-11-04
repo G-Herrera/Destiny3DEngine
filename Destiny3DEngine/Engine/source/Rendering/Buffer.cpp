@@ -20,7 +20,7 @@ Buffer::init(Device& device, const MeshComponent& mesh, unsigned int bindFlag) {
 	D3D11_BUFFER_DESC desc = {};
 	D3D11_SUBRESOURCE_DATA data = {};
 
-	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
 	desc.CPUAccessFlags = 0;
 	m_bindFlag = bindFlag;
 	desc.BindFlags = (D3D11_BIND_FLAG)bindFlag;
@@ -42,4 +42,113 @@ Buffer::init(Device& device, const MeshComponent& mesh, unsigned int bindFlag) {
     data.pSysMem = mesh.m_index.data();
 	}
 	return createBuffer(device, desc, &data);
+}
+
+HRESULT 
+Buffer::init(Device& device, unsigned int ByteWidth) {
+	if (!device.getDevice()) {
+		ERROR("ShaderProgram", "init", "Device is null");
+		return E_POINTER;
+	}
+	if (ByteWidth == 0) {
+		ERROR("Buffer", "init", "ByteWidth is zero");
+		return E_INVALIDARG;
+	}
+	m_stride = ByteWidth;
+
+	D3D11_BUFFER_DESC desc = {};
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.ByteWidth = ByteWidth;
+	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	m_bindFlag = desc.BindFlags;
+
+	return createBuffer(device, desc, nullptr);
+}
+
+void 
+Buffer::update(DeviceContext& deviceContext, 
+               ID3D11Resource* pDstResource, 
+               unsigned int DstSubresource, 
+               const D3D11_BOX* pDstBox, 
+               const void* pSrcData, 
+               unsigned int SrcRowPitch, 
+               unsigned int SrcDepthPitch) {
+	if (!m_buffer) {
+		ERROR("ShaderProgram", "update", "m_buffer is null.");
+		return;
+	}
+	if (!pSrcData) {
+		ERROR("ShaderProgram", "update", "pSrcData is null.");
+		return;
+	}
+	deviceContext.getDeviceContext()->UpdateSubresource(m_buffer,
+                                                      DstSubresource,
+                                                      pDstBox,
+                                                      pSrcData,
+                                                      SrcRowPitch,
+                                                      SrcDepthPitch);
+}
+
+void 
+Buffer::render(DeviceContext& deviceContext, 
+               unsigned int StartSlot, 
+               unsigned int NumBuffers, 
+               bool setPixelShader, 
+               DXGI_FORMAT format) {
+	if (!deviceContext.getDeviceContext()) {
+		ERROR("RenderTargetView", "render", "DeviceContext is null.");
+		return;
+	}
+	if (!m_buffer) {
+		ERROR("Buffer", "render", "m_buffer is null.");
+		return;
+	}
+
+	switch (m_bindFlag) {
+	case D3D11_BIND_VERTEX_BUFFER:
+		deviceContext.getDeviceContext()->IASetVertexBuffers(StartSlot,
+                                                         NumBuffers,
+                                                         &m_buffer,
+                                                         &m_stride,
+                                                         &m_offset);
+		break;
+	case D3D11_BIND_CONSTANT_BUFFER:
+	  deviceContext.getDeviceContext()->VSSetConstantBuffers(StartSlot,
+                                                           NumBuffers,
+                                                           &m_buffer);
+		if (setPixelShader) {
+			deviceContext.getDeviceContext()->PSSetConstantBuffers(StartSlot,
+				                                                     NumBuffers,
+				                                                     &m_buffer);
+		}
+		break;
+	case D3D11_BIND_INDEX_BUFFER:
+		deviceContext.getDeviceContext()->IASetIndexBuffer(m_buffer, format, m_offset);
+		break;
+	default:
+		ERROR("Buffer", "render", "Unsupported BindFlags");
+		break;
+	}
+}
+
+void
+Buffer::destroy() {
+	SAFE_RELEASE(m_buffer);
+}
+
+HRESULT 
+Buffer::createBuffer(Device& device, 
+                     D3D11_BUFFER_DESC& desc, 
+                     D3D11_SUBRESOURCE_DATA* initData) {
+	if (!device.getDevice()) {
+		ERROR("Buffer", "createBuffer", "Device is null");
+		return E_POINTER;
+	}
+
+	HRESULT hr = device.getDevice()->CreateBuffer(&desc, initData, &m_buffer);
+	if (FAILED(hr)) {
+		ERROR("Buffer", "createBuffer", "Failed to create buffer");
+		return hr;
+	}
+	return S_OK;
 }
