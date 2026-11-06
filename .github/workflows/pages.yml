@@ -2,7 +2,7 @@ name: Publish website and Doxygen API
 
 on:
   push:
-    branches: [engineImplementation]
+    branches: [Abstraccion]
     paths:
       - 'website/**'
       - 'docs/**'
@@ -31,7 +31,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y doxygen graphviz
       - name: Generate API docs
-        run: doxygen Doxyfile
+        run: |
+          mkdir -p build/doxygen
+          doxygen Doxyfile
       - name: Assemble Pages site
         run: |
           mkdir -p _site/api
