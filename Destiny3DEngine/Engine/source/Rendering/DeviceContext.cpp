@@ -9,7 +9,7 @@ void
 DeviceContext::destroy() {
 	if (m_deviceContext) {
 		m_deviceContext->ClearState();
-		m_deviceContext->Release();
+		m_deviceContext->Flush();
 		SafeRelease(m_deviceContext);
 	}
 }

@@ -6,15 +6,8 @@
 #include <Rendering/DeviceContext.h>
 #include <Rendering/Texture2D.h>
 
-
 struct
-  Engine::Implementation {
-  /*struct
-    Vertex {
-    float position[3];
-    float color[4];
-  };*/
-
+Engine::Implementation {
   struct alignas(16) TransformBuffer
   {
     DirectX::XMFLOAT4X4 worldViewProjection;
@@ -27,20 +20,14 @@ struct
 
   Device device;
   DeviceContext deviceContext;
-  //ID3D11Device* device = nullptr;
-  //ID3D11DeviceContext* deviceContext = nullptr;
   IDXGISwapChain* swapChain = nullptr;
   ID3D11RenderTargetView* renderTargetView = nullptr;
-
-  //ID3D11Texture2D* depthStencilBuffer = nullptr;
   Texture2D backBuffer;
   Texture2D depthStencilBuffer;
   ID3D11DepthStencilView* depthStencilView = nullptr;
   
 	Buffer vertexBuffer;
 	Buffer indexBuffer;
-  //ID3D11Buffer* vertexBuffer = nullptr;
-  //ID3D11Buffer* indexBuffer = nullptr;
   ID3D11Buffer* transformBuffer = nullptr;
   
   ID3D11RasterizerState* rasterizerState = nullptr;
@@ -106,17 +93,9 @@ struct
     */
   
   void 
-  ReleaseResources() noexcept {
-    //if (deviceContext) {
-    //  deviceContext->ClearState();
-    //  deviceContext->Flush();
-    //}
-
-    
+  ReleaseResources() noexcept {    
     SafeRelease(rasterizerState);
     SafeRelease(transformBuffer);
-    //SafeRelease(indexBuffer);
-    //SafeRelease(vertexBuffer);
     indexBuffer.destroy();
     vertexBuffer.destroy();
 
@@ -126,13 +105,10 @@ struct
     
     SafeRelease(depthStencilView);
     depthStencilBuffer.destroy();
-    //SafeRelease(depthStencilBuffer);
     SafeRelease(renderTargetView);
     
     SafeRelease(swapChain);
     backBuffer.destroy();
-    //SafeRelease(deviceContext);
-    //SafeRelease(device);
     deviceContext.destroy();
 		device.destroy();
     
@@ -213,8 +189,6 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   if (FAILED(result)) {
     SafeRelease(engine.swapChain);
     engine.deviceContext.destroy();
-    //SafeRelease(engine.deviceContext);
-    //SafeRelease(engine.device);
 		engine.device.destroy();
     
     result = D3D11CreateDeviceAndSwapChain(nullptr,
@@ -237,7 +211,6 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
     return false;
   }
   
-  //ID3D11Texture2D* backBuffer = nullptr;
   result = engine.swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), 
                                        reinterpret_cast<void**>(engine.backBuffer.GetTextureAdress()));
   
@@ -256,26 +229,6 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
     engine.ReleaseResources();
     return false;
   }
-  
-  //Descriptor del buffer, utilizado para crear el depth stencil buffer y su vista.
-  /*  D3D11_TEXTURE2D_DESC depthBufferDescription{};
-  
-  depthBufferDescription.Width = engine.width;
-  depthBufferDescription.Height = engine.height;
-  depthBufferDescription.MipLevels = 1;
-  depthBufferDescription.ArraySize = 1;
-  depthBufferDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-  
-  depthBufferDescription.SampleDesc.Count = 1;
-  depthBufferDescription.SampleDesc.Quality = 0;
-  depthBufferDescription.Usage = D3D11_USAGE_DEFAULT;
-  
-  depthBufferDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL*/;
-  
- /* result = engine.device.CreateTexture2D(&depthBufferDescription, 
-                                         nullptr, 
-                                         &engine.depthStencilBuffer);*/
-
 
   result = engine.depthStencilBuffer.init(engine.device, 
                                           engine.width, 
@@ -452,24 +405,6 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
     }
   };
   
-  /*D3D11_BUFFER_DESC vertexBufferDescription{};
-  
-  vertexBufferDescription.ByteWidth = static_cast<UINT>(sizeof(vertices));
-  
-  vertexBufferDescription.Usage = D3D11_USAGE_IMMUTABLE;
-  
-  vertexBufferDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  
-  vertexBufferDescription.CPUAccessFlags = 0;
-  vertexBufferDescription.MiscFlags = 0;
-  vertexBufferDescription.StructureByteStride = 0;
-  
-  D3D11_SUBRESOURCE_DATA initialVertexData{};
-  initialVertexData.pSysMem = vertices;
-  
-	result = engine.vertexBuffer.createBuffer(engine.device, 
-                                            vertexBufferDescription, 
-                                            &initialVertexData);*/
   //Store the vertex data in the mesh component for later use
   for (const auto& vertex : vertices){
     engine.mesh.m_vertex.push_back(vertex);
@@ -480,10 +415,6 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   result = engine.vertexBuffer.init(engine.device,
                                     engine.mesh,
                                     D3D11_BIND_VERTEX_BUFFER);
-
-  /*result = engine.device.CreateBuffer(&vertexBufferDescription,
-                                      &initialVertexData,
-                                      &engine.vertexBuffer);*/
   
   if (FAILED(result))
   {
@@ -529,21 +460,6 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   result = engine.indexBuffer.init(engine.device,
                                    engine.mesh,
                                    D3D11_BIND_INDEX_BUFFER);
-  
-  /*D3D11_BUFFER_DESC indexBufferDescription{};
-  
-  indexBufferDescription.ByteWidth = static_cast<UINT>(sizeof(indices));
-  
-  indexBufferDescription.Usage = D3D11_USAGE_IMMUTABLE;
-  
-  indexBufferDescription.BindFlags = D3D11_BIND_INDEX_BUFFER;
-  
-  D3D11_SUBRESOURCE_DATA indexData{};
-  indexData.pSysMem = indices;
-  
-  result = engine.device.CreateBuffer(&indexBufferDescription, 
-                                      &indexData, 
-                                      &engine.indexBuffer);*/
   
   if (FAILED(result))
   {
@@ -677,17 +593,9 @@ Engine::Render() noexcept
                                           0, 
                                           0);
   
-  //constexpr UINT stride = sizeof(Implementation::Vertex);
-  //
-  //constexpr UINT offset = 0;
-  //
-  //engine.deviceContext.IASetVertexBuffers(0, 1, &engine.vertexBuffer, &stride, &offset);
-  
   engine.vertexBuffer.render(engine.deviceContext, 0, 1);
 
-	engine.indexBuffer.render(engine.deviceContext, 0, 1);
-
-  //engine.deviceContext.IASetIndexBuffer(engine.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	engine.indexBuffer.render(engine.deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
   
   engine.deviceContext.IASetInputLayout(engine.inputLayout);
   
