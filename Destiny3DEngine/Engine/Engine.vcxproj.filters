@@ -57,6 +57,15 @@
     <ClInclude Include="include\Engine\MeshComponent.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="include\Rendering\RenderTargetView.h">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Rendering\DepthStencilView.h">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Rendering\RasterizerState.h">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine.cpp">
@@ -72,6 +81,9 @@
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="source\Rendering\Buffer.cpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Rendering\RenderTargetView.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
