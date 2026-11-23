@@ -5,6 +5,8 @@
 #include <Rendering/Device.h>
 #include <Rendering/DeviceContext.h>
 #include <Rendering/Texture2D.h>
+#include <Rendering/RenderTargetView.h>
+#include <Rendering/DepthStencilView.h>
 
 struct
 Engine::Implementation {
@@ -21,10 +23,12 @@ Engine::Implementation {
   Device device;
   DeviceContext deviceContext;
   IDXGISwapChain* swapChain = nullptr;
-  ID3D11RenderTargetView* renderTargetView = nullptr;
+  //ID3D11RenderTargetView* renderTargetView = nullptr;
+  RenderTargetView renderTargetView;
   Texture2D backBuffer;
   Texture2D depthStencilBuffer;
-  ID3D11DepthStencilView* depthStencilView = nullptr;
+  //ID3D11DepthStencilView* depthStencilView = nullptr;
+  DepthStencilView depthStencilView;
   
 	Buffer vertexBuffer;
 	Buffer indexBuffer;
@@ -103,10 +107,12 @@ Engine::Implementation {
     SafeRelease(pixelShader);
     SafeRelease(vertexShader);
     
-    SafeRelease(depthStencilView);
+    //SafeRelease(depthStencilView);
+    depthStencilView.destroy();
     depthStencilBuffer.destroy();
-    SafeRelease(renderTargetView);
-    
+    //SafeRelease(renderTargetView);
+    renderTargetView.destroy();
+
     SafeRelease(swapChain);
     backBuffer.destroy();
     deviceContext.destroy();
@@ -212,7 +218,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   }
   
   result = engine.swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), 
-                                       reinterpret_cast<void**>(engine.backBuffer.GetTextureAdress()));
+                                       reinterpret_cast<void**>(engine.backBuffer.GetTextureAddress()));
   
   if (FAILED(result)) {
 		OutputDebugStringA("ERROR: Fallo al obtener el back buffer del swap chain.\n");
@@ -220,9 +226,14 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
     return false;
   }
   
-  result = engine.device.CreateRenderTargetView(engine.backBuffer.GetTexture(),
+  /*result = engine.device.CreateRenderTargetView(engine.backBuffer.GetTexture(),
                                                 nullptr, 
-                                                &engine.renderTargetView);
+                                                &engine.renderTargetView);*/
+
+  result = result = engine.renderTargetView.init(engine.device,
+                                                 engine.backBuffer,
+                                                 D3D11_RTV_DIMENSION_TEXTURE2D,
+                                                 DXGI_FORMAT_R8G8B8A8_UNORM);
   
   if (FAILED(result)) {
 		OutputDebugStringA("ERROR: Fallo al crear el render target view.\n");
@@ -247,7 +258,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   //Actualiza la profundidad de los píxeles y determina si se deben renderizar o descartar.
   result = engine.device.CreateDepthStencilView(engine.depthStencilBuffer.GetTexture(),
                                                 nullptr, 
-                                                &engine.depthStencilView);
+                                                engine.depthStencilView.getAddressOfDepthStencilView());
   
   if (FAILED(result))
   {
@@ -523,8 +534,8 @@ Engine::Render() noexcept
   
   if (!engine.deviceContext.getDeviceContext() ||
       !engine.swapChain ||
-      !engine.renderTargetView ||
-      !engine.depthStencilView ||
+      !engine.renderTargetView.getRenderTargetView() ||
+      !engine.depthStencilView.getDepthStencilView() ||
       !engine.vertexBuffer.getBuffer() ||
       !engine.indexBuffer.getBuffer() ||
       !engine.transformBuffer ||
@@ -543,13 +554,9 @@ Engine::Render() noexcept
     1.0f
   };
   
-  engine.deviceContext.OMSetRenderTargets(1, 
-                                           &engine.renderTargetView, 
-                                           engine.depthStencilView);
+  engine.renderTargetView.render(engine.deviceContext,engine.depthStencilView,1,clearColor);
   
-  engine.deviceContext.ClearRenderTargetView(engine.renderTargetView, clearColor);
-  
-  engine.deviceContext.ClearDepthStencilView(engine.depthStencilView,
+  engine.deviceContext.ClearDepthStencilView(engine.depthStencilView.getDepthStencilView(),
                                               D3D11_CLEAR_DEPTH |
                                               D3D11_CLEAR_STENCIL,
                                               1.0f,

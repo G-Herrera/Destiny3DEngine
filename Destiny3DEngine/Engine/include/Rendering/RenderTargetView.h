@@ -3,7 +3,7 @@
 
 class Device;
 class DeviceContext;
-class Texture;
+class Texture2D;
 class DepthStencilView;
 
 class
@@ -20,7 +20,7 @@ public:
    * @return HRESULT indicating success or failure.
    */
   HRESULT 
-  init(Device& device, Texture& backBuffer, DXGI_FORMAT Format);
+  init(Device& device, Texture2D& backBuffer, DXGI_FORMAT Format);
   
 	/**
    *
@@ -34,7 +34,7 @@ public:
    */ 
   HRESULT 
   init(Device& device, 
-       Texture& inTex, 
+       Texture2D& inTex, 
        D3D11_RTV_DIMENSION ViewDimension, 
        DXGI_FORMAT Format);
 

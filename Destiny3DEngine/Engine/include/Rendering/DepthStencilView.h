@@ -3,7 +3,7 @@
 
 class Device;
 class DeviceContext;
-class Texture;
+class Texture2D;
 
 class 
 DepthStencilView {
@@ -15,12 +15,12 @@ public:
    * @brief Initializes the DepthStencilView with a device, depth stencil buffer texture, and format.
    * 
    * @param device The Direct3D device used for rendering.
-   * @param depthStencilBuffer The depth stencil buffer texture to be used for depth testing.
+   * @param depthStencil The depth stencil buffer texture to be used for depth testing.
    * @param Format The format of the depth stencil view.
    * @return HRESULT indicating success or failure.
 	 */
   HRESULT 
-  init(Device& device, Texture& depthStencilBuffer, DXGI_FORMAT Format);
+  init(Device& device, Texture2D& depthStencil, DXGI_FORMAT Format);
   
   /**
    * @brief Initializes the DepthStencilView with a device, depth stencil buffer texture, view dimension, and format.
@@ -33,7 +33,7 @@ public:
 	 */
   HRESULT 
   init(Device& device, 
-       Texture& depthStencil, 
+       Texture2D& depthStencil, 
        DXGI_FORMAT Format,
        D3D11_DSV_DIMENSION ViewDimension);
   
@@ -63,6 +63,13 @@ public:
    * @return Pointer to the ID3D11DepthStencilView interface.
 	 */
 	ID3D11DepthStencilView* getDepthStencilView() const { return m_DepthStencilView; }
+
+  /**
+   * @brief Retrieves the address of the underlying ID3D11DepthStencilView pointer.
+   *
+   * @return Pointer to the ID3D11DepthStencilView pointer.
+   */
+  ID3D11DepthStencilView** getAddressOfDepthStencilView(){ return &m_DepthStencilView; }
 private:
 	ID3D11DepthStencilView* m_DepthStencilView = nullptr; ///> Pointer to the Direct3D depth stencil view interface.
 };

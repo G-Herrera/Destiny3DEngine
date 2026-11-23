@@ -226,6 +226,7 @@
   <ItemGroup>
     <ClCompile Include="source\Engine.cpp" />
     <ClCompile Include="source\Rendering\Buffer.cpp" />
+    <ClCompile Include="source\Rendering\DepthStencilView.cpp" />
     <ClCompile Include="source\Rendering\Device.cpp" />
     <ClCompile Include="source\Rendering\DeviceContext.cpp" />
     <ClCompile Include="source\Rendering\RenderTargetView.cpp" />

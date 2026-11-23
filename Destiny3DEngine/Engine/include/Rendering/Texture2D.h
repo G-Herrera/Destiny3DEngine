@@ -145,7 +145,7 @@ public:
    * @return ID3D11Texture2D** The address of the underlying Direct3D texture.
 	 */
   ID3D11Texture2D** 
-  GetTextureAdress() noexcept {
+  GetTextureAddress() noexcept {
     return &m_texture;
   }
 
