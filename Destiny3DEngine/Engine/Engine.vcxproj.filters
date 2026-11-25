@@ -66,6 +66,12 @@
     <ClInclude Include="include\Rendering\RasterizerState.h">
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="include\Rendering\ShaderProgram.h">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Rendering\InputLayout.h">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine.cpp">
