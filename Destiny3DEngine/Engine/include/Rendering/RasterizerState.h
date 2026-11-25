@@ -71,6 +71,12 @@ public:
   render(DeviceContext& deviceContext);
 
   /**
+   * @brief Destroys the rasterizer state and releases any associated resources.
+   */
+  void 
+  destroy();
+
+  /**
    * @brief Retrieves the underlying Direct3D 11 rasterizer state.
    *
    * @return Pointer to the ID3D11RasterizerState interface.

@@ -7,6 +7,7 @@
 #include <Rendering/Texture2D.h>
 #include <Rendering/RenderTargetView.h>
 #include <Rendering/DepthStencilView.h>
+#include <Rendering/RasterizerState.h>
 
 struct
 Engine::Implementation {
@@ -34,7 +35,8 @@ Engine::Implementation {
 	Buffer indexBuffer;
   ID3D11Buffer* transformBuffer = nullptr;
   
-  ID3D11RasterizerState* rasterizerState = nullptr;
+  //ID3D11RasterizerState* rasterizerState = nullptr;
+  RasterizerState rasterizerState;
   
   std::chrono::steady_clock::time_point startTime{};
   
@@ -98,7 +100,8 @@ Engine::Implementation {
   
   void 
   ReleaseResources() noexcept {    
-    SafeRelease(rasterizerState);
+    //SafeRelease(rasterizerState);
+    rasterizerState.destroy();
     SafeRelease(transformBuffer);
     indexBuffer.destroy();
     vertexBuffer.destroy();
@@ -505,8 +508,7 @@ Engine::Initialize(void* nativeWindow, std::uint32_t width, std::uint32_t height
   
   rasterizerDescription.DepthClipEnable = TRUE;
   
-  result = engine.device.CreateRasterizerState(&rasterizerDescription, 
-                                               &engine.rasterizerState);
+  result = engine.rasterizerState.init(engine.device);
   
   if (FAILED(result))
   {
@@ -608,7 +610,7 @@ Engine::Render() noexcept
   
   engine.deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   
-  engine.deviceContext.RSSetState(engine.rasterizerState);
+  engine.rasterizerState.render(engine.deviceContext);
   
   engine.deviceContext.VSSetShader(engine.vertexShader, nullptr, 0);
   

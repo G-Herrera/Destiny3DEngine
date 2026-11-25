@@ -229,6 +229,7 @@
     <ClCompile Include="source\Rendering\DepthStencilView.cpp" />
     <ClCompile Include="source\Rendering\Device.cpp" />
     <ClCompile Include="source\Rendering\DeviceContext.cpp" />
+    <ClCompile Include="source\Rendering\RasterizerState.cpp" />
     <ClCompile Include="source\Rendering\RenderTargetView.cpp" />
     <ClCompile Include="source\Rendering\Texture2D.cpp" />
   </ItemGroup>
